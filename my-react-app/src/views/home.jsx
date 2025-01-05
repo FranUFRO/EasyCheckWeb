@@ -1,6 +1,7 @@
 import React from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
+import Carousel from "../components/carousel"; // Importa el componente del carrusel
 
 const Home = () => {
   return (
@@ -15,6 +16,10 @@ const Home = () => {
         marginTop: "-64px", // Evita superposición con el Navbar
       }}
     >
+      {/* Carrusel */}
+      <Carousel />
+
+      {/* Texto de bienvenida */}
       <Typography variant="h3" gutterBottom>
         Bienvenido a la Plataforma
       </Typography>
