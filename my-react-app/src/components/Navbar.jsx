@@ -42,11 +42,10 @@ const Navbar = () => {
           sx={{ display: "flex", alignItems: "center" }}
         >
           <img
-            src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/UFRO.svg/1200px-UFRO.svg.png"
+            src="../../src/assets/logoUFRO.png"
             alt="Logo"
             style={{ height: "40px", width: "auto", marginRight: "16px" }}
           />
-          UFRO
         </Typography>
 
         {/* Menú desplegable */}
