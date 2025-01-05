@@ -1,15 +1,23 @@
-import React from 'react';
-import { Box, Button, TextField, Typography, Paper } from '@mui/material';
+import React from "react";
+import { Box, Button, TextField, Typography, Paper } from "@mui/material";
+import { useNavigate } from "react-router-dom"; // Importa useNavigate
 import logoUFRO from "../assets/logoAzulUfro.png";
+
 const Login = () => {
+  const navigate = useNavigate(); // Hook para navegar entre vistas
+
+  const handleLogin = () => {
+    navigate("/home"); // Navega a la vista Home
+  };
+
   return (
     <Box
       sx={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        minHeight: '100vh',
-        backgroundColor: '#cfcfcf', // Color de fondo gris
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        minHeight: "100vh",
+        backgroundColor: "#cfcfcf", // Color de fondo gris
       }}
     >
       <Paper
@@ -17,17 +25,17 @@ const Login = () => {
         sx={{
           padding: 4,
           maxWidth: 400,
-          width: '100%',
-          textAlign: 'center',
+          width: "100%",
+          textAlign: "center",
           borderRadius: 3,
         }}
       >
         {/* Título del Login con el logo */}
         <Box
           sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
             marginBottom: 3,
           }}
         >
@@ -62,6 +70,7 @@ const Login = () => {
           color="primary"
           fullWidth
           sx={{ marginTop: 2 }}
+          onClick={handleLogin} // Lógica de navegación
         >
           Iniciar sesión
         </Button>
