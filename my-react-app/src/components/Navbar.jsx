@@ -11,6 +11,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import Avatar from "@mui/material/Avatar";
 import IconButton from "@mui/material/IconButton";
 import axios from "axios";
+import { useNavigate } from 'react-router-dom'; // Si usas react-router-dom v6
 
 const Navbar = () => {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -42,8 +43,12 @@ const Navbar = () => {
       // Verificamos si los datos tienen el formato esperado
       if (response.data && Array.isArray(response.data)) {
         setCourses(response.data); // Si es un array, lo asignamos directamente
+        console.log("cursos si es array");
+        console.log(response.data);
       } else if (response.data && Array.isArray(response.data.courses)) {
         setCourses(response.data.courses); // Si viene dentro de un objeto, accedemos al array
+        console.log("cursos si no es array");
+        console.log(response.data.courses);
       } else {
         throw new Error("La respuesta del servidor no contiene cursos válidos.");
       }
@@ -68,6 +73,22 @@ const Navbar = () => {
     setAnchorEl(null);
   };
 
+  const navigate = useNavigate(); // Si usas v6 de react-router-dom
+
+  const handleMenuItemClick = (courseId, course) => {
+    // Guardamos el course_id en localStorage
+    localStorage.setItem('course_id', courseId);
+    localStorage.setItem('course_name', course.name + " " + course.code);
+    // Redirigimos a la página de asistencia_asignaturas
+    handleMenuClose();
+    navigate('/asistencia-asignatura');
+    window.location.reload();
+  };
+
+  const handleLogoClick = () => {
+    navigate('/home'); // Redirige al inicio (home)
+  };
+
   return (
     <AppBar
       position="sticky"
@@ -86,11 +107,12 @@ const Navbar = () => {
           variant="h6"
           component="div"
           sx={{ display: "flex", alignItems: "center" }}
+          onClick={handleLogoClick}
         >
           <img
             src="../../src/assets/logoUFRO.png"
             alt="Logo"
-            style={{ height: "40px", width: "auto", marginRight: "16px" }}
+            style={{ height: "40px", width: "auto", marginRight: "16px", cursor: "pointer" }}
           />
         </Typography>
 
@@ -115,7 +137,7 @@ const Navbar = () => {
             <MenuItem disabled>No hay asignaturas disponibles</MenuItem>
           ) : (
             courses.map((course) => (
-              <MenuItem key={course._id} onClick={handleMenuClose}>
+              <MenuItem key={course.id} onClick={() => handleMenuItemClick(course.id, course)}>
                 {course.name} - {course.code}
               </MenuItem>
             ))
