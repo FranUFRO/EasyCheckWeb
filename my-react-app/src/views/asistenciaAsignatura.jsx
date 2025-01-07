@@ -26,14 +26,27 @@ const AsistenciaAsignatura = () => {
       };
 
       // Solicitar los registros de asistencia para el curso
-      const response = await axios.get(`http://localhost:3000/courses/${courseID}`, {
-        headers,
-      });
+    const response = await axios.get(`http://localhost:3000/attendance/course/${courseID}`, {
+      headers,
+    });
 
-      if (response.data) {
-        console.log("datos obtenidos");
-        console.log(response.data.schedules);
-        setSchedules(response.data.schedules);
+    if (response.data) {
+      console.log("Datos obtenidos:");
+      console.log(response.data);
+
+      // Extraer las fechas únicas
+      const uniqueDates = [
+        ...new Set(
+          response.data.map((attendance) => 
+            new Date(attendance.date).toISOString().split('T')[0] // Extraer solo la parte de la fecha (YYYY-MM-DD)
+          )
+        ),
+      ];
+
+      console.log("Fechas únicas:", uniqueDates);
+
+      // Guardar las fechas únicas en el estado
+      setSchedules(uniqueDates);
       } else {
         throw new Error("La respuesta del servidor no contiene clases válidas.");
       }
