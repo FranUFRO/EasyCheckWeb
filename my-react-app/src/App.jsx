@@ -1,34 +1,56 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { getSession, saveSession, clearSession } from './api/client'
+import LoginPage from './pages/LoginPage'
+import ProfessorPanel from './pages/ProfessorPanel'
+import AdminPanel from './pages/AdminPanel'
+import DirectorPanel from './pages/DirectorPanel'
+
+const ROLE_LABELS = {
+  profesor: 'Profesor',
+  director: 'Director de carrera',
+  administrador: 'Administrador',
+}
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [session, setSession] = useState(getSession)
+
+  const handleLogin = (newSession) => {
+    saveSession(newSession)
+    setSession(newSession)
+  }
+
+  const handleLogout = () => {
+    clearSession()
+    setSession(null)
+  }
+
+  if (!session) {
+    return <LoginPage onLogin={handleLogin} />
+  }
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    <div className="app-layout">
+      <header className="app-header">
+        <div>
+          <strong>EasyCheck</strong>
+          <span className="header-sub">Panel web · UFRO</span>
+        </div>
+        <div className="header-user">
+          <span>
+            {ROLE_LABELS[session.role] ?? session.role} · {session.rut}
+          </span>
+          <button className="secondary" onClick={handleLogout}>
+            Cerrar sesión
+          </button>
+        </div>
+      </header>
+
+      <main className="app-main">
+        {session.role === 'profesor' && <ProfessorPanel session={session} />}
+        {session.role === 'administrador' && <AdminPanel />}
+        {session.role === 'director' && <DirectorPanel />}
+      </main>
+    </div>
   )
 }
 
