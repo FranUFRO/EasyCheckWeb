@@ -5,13 +5,14 @@ import { useState } from 'react'
 import {
   getSubjectAssistance,
   setClassRegistration,
+  setClassEditing,
   editAssistanceRecord,
   getStudentSubjectRecords,
 } from '../api/endpoints'
 import Feedback from '../components/Feedback'
 
 // CU-05 — roster de asistencia de una asignatura que dicta el profesor.
-function SubjectAssistance({ professorRut }) {
+function SubjectAssistance() {
   const [subjectCode, setSubjectCode] = useState('')
   const [rows, setRows] = useState(null)
   const [queriedCode, setQueriedCode] = useState('')
@@ -24,7 +25,7 @@ function SubjectAssistance({ professorRut }) {
     setRows(null)
     setLoading(true)
     try {
-      const data = await getSubjectAssistance(professorRut, subjectCode.trim())
+      const data = await getSubjectAssistance(subjectCode.trim())
       setRows(data)
       setQueriedCode(subjectCode.trim())
     } catch (e) {
@@ -88,19 +89,23 @@ function SubjectAssistance({ professorRut }) {
   )
 }
 
-// CU-07 / CU-08 — deshabilitar o habilitar el registro de asistencia de una clase.
+// CU-07 / CU-08 — estados de una clase: registro (permite que los estudiantes
+// marquen asistencia) y ventana de edición (permite corregir registros).
 function RegistrationToggle({ professorRut }) {
   const [classId, setClassId] = useState('')
   const [feedback, setFeedback] = useState(null)
-  const [lastStatus, setLastStatus] = useState(null)
+  const [registration, setRegistration] = useState(null)
+  const [editing, setEditing] = useState(null)
   const [loading, setLoading] = useState(false)
 
-  const apply = async (status) => {
+  const applyRegistration = async (status) => {
     setFeedback(null)
     setLoading(true)
     try {
       const result = await setClassRegistration(professorRut, Number(classId), status)
-      setLastStatus(result.registrationStatus)
+      setRegistration(result.registrationStatus)
+      // Reabrir el registro fuerza el cierre de la ventana de edición.
+      setEditing(result.registrationStatus === 'ENABLED' ? 'DISABLED' : editing)
       setFeedback({
         type: 'success',
         text: `Clase ${result.classId}: registro ${
@@ -109,7 +114,26 @@ function RegistrationToggle({ professorRut }) {
       })
     } catch (e) {
       setFeedback({ type: 'error', text: e.message })
-      setLastStatus(null)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const applyEditing = async (status) => {
+    setFeedback(null)
+    setLoading(true)
+    try {
+      const result = await setClassEditing(Number(classId), status)
+      setEditing(result.editingStatus)
+      setRegistration(result.registrationStatus)
+      setFeedback({
+        type: 'success',
+        text: `Clase ${result.classId}: edición ${
+          result.editingStatus === 'ENABLED' ? 'habilitada' : 'deshabilitada'
+        }.`,
+      })
+    } catch (e) {
+      setFeedback({ type: 'error', text: e.message })
     } finally {
       setLoading(false)
     }
@@ -117,13 +141,20 @@ function RegistrationToggle({ professorRut }) {
 
   const invalidId = classId.trim() === '' || Number.isNaN(Number(classId))
 
+  const badge = (value, onLabel, offLabel) => (
+    <span className={`badge ${value === 'ENABLED' ? 'ok' : 'warn'}`}>
+      {value === 'ENABLED' ? onLabel : offLabel}
+    </span>
+  )
+
   return (
     <section className="card">
-      <h2>Registro de asistencia por clase</h2>
+      <h2>Estados de una clase</h2>
       <p className="hint">
-        Deshabilita (CU-07) o habilita (CU-08) que los estudiantes marquen
-        asistencia en una clase. Seed: clases 1 y 2 (ICC-101), 3 (ICC-202); la
-        clase 2 parte deshabilitada.
+        CU-07: deshabilita el registro para que los estudiantes ya no marquen
+        asistencia. CU-08: con el registro deshabilitado, habilita la ventana de
+        edición para corregir registros. Seed: clases 1 y 2 (ICC-101), 3
+        (ICC-202); la clase 2 parte con registro deshabilitado.
       </p>
       <div className="inline-form">
         <input
@@ -136,20 +167,40 @@ function RegistrationToggle({ professorRut }) {
         <button
           className="danger"
           disabled={loading || invalidId}
-          onClick={() => apply('DISABLED')}
+          onClick={() => applyRegistration('DISABLED')}
         >
           Deshabilitar registro
         </button>
-        <button disabled={loading || invalidId} onClick={() => apply('ENABLED')}>
+        <button
+          disabled={loading || invalidId}
+          onClick={() => applyRegistration('ENABLED')}
+        >
           Habilitar registro
         </button>
       </div>
-      {lastStatus && (
+      <div className="inline-form">
+        <button
+          disabled={loading || invalidId}
+          onClick={() => applyEditing('ENABLED')}
+        >
+          Habilitar edición
+        </button>
+        <button
+          className="secondary"
+          disabled={loading || invalidId}
+          onClick={() => applyEditing('DISABLED')}
+        >
+          Deshabilitar edición
+        </button>
+      </div>
+      {(registration || editing) && (
         <p>
-          Estado actual:{' '}
-          <span className={`badge ${lastStatus === 'ENABLED' ? 'ok' : 'warn'}`}>
-            {lastStatus === 'ENABLED' ? 'HABILITADO' : 'DESHABILITADO'}
-          </span>
+          {registration && (
+            <>Registro: {badge(registration, 'HABILITADO', 'DESHABILITADO')} </>
+          )}
+          {editing && (
+            <>Edición: {badge(editing, 'HABILITADA', 'DESHABILITADA')}</>
+          )}
         </p>
       )}
       <Feedback feedback={feedback} />
@@ -158,7 +209,7 @@ function RegistrationToggle({ professorRut }) {
 }
 
 // CU-08 — editar registros de asistencia (presente/ausente) de un estudiante.
-function EditAssistance({ professorRut }) {
+function EditAssistance() {
   const [studentRut, setStudentRut] = useState('')
   const [subjectCode, setSubjectCode] = useState('')
   const [result, setResult] = useState(null)
@@ -190,7 +241,7 @@ function EditAssistance({ professorRut }) {
     setFeedback(null)
     setLoading(true)
     try {
-      const updated = await editAssistanceRecord(professorRut, record.id, !record.present)
+      const updated = await editAssistanceRecord(record.id, !record.present)
       setFeedback({
         type: 'success',
         text: `Registro ${updated.recordId} de ${updated.studentRut} marcado como ${
@@ -212,8 +263,9 @@ function EditAssistance({ professorRut }) {
       <h2>Editar registros de asistencia</h2>
       <p className="hint">
         Busca los registros de un estudiante en una asignatura que dictas y
-        corrige presente/ausente (CU-08). Seed: 11111111-1 y 55555555-5 tienen
-        registros en ICC-101.
+        corrige presente/ausente (CU-08). La clase debe tener la ventana de
+        edición habilitada (pestaña anterior). Seed: 11111111-1 y 55555555-5
+        tienen registros en ICC-101.
       </p>
       <form className="inline-form" onSubmit={search}>
         <input
@@ -294,9 +346,9 @@ export default function ProfessorPanel({ session }) {
           </button>
         ))}
       </nav>
-      {tab === 'roster' && <SubjectAssistance professorRut={session.rut} />}
+      {tab === 'roster' && <SubjectAssistance />}
       {tab === 'registration' && <RegistrationToggle professorRut={session.rut} />}
-      {tab === 'edit' && <EditAssistance professorRut={session.rut} />}
+      {tab === 'edit' && <EditAssistance />}
     </>
   )
 }

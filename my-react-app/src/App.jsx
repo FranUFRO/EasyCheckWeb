@@ -37,7 +37,8 @@ function App() {
         </div>
         <div className="header-user">
           <span>
-            {ROLE_LABELS[session.role] ?? session.role} · {session.rut}
+            {ROLE_LABELS[session.role] ?? session.role} ·{' '}
+            {session.fullName ?? session.rut}
           </span>
           <button className="secondary" onClick={handleLogout}>
             Cerrar sesión

@@ -24,7 +24,12 @@ export default function LoginPage({ onLogin }) {
         })
         return
       }
-      onLogin({ rut: rut.trim(), role: result.role })
+      onLogin({
+        rut: result.user.rut,
+        fullName: result.user.fullName,
+        role: result.role,
+        token: result.token,
+      })
     } catch (e) {
       setFeedback({ type: 'error', text: e.message })
     } finally {
@@ -71,7 +76,7 @@ export default function LoginPage({ onLogin }) {
               <tr><td>44444444-4</td><td>administrador</td></tr>
             </tbody>
           </table>
-          <p>La contraseña solo debe ser no vacía (auth de demo).</p>
+          <p>Contraseña de todas las cuentas seed: <code>demo</code>.</p>
         </details>
       </form>
     </div>

@@ -34,10 +34,9 @@ export async function apiFetch(path, { method = 'GET', body, auth = true } = {})
 
   if (auth) {
     const session = getSession()
-    // Auth de desarrollo del backend: los guards exigen un header Authorization
-    // (cualquier valor) y leen el rol desde x-user-role (middleware de main.ts).
-    headers.Authorization = 'Bearer dev-token'
-    if (session?.role) headers['x-user-role'] = session.role
+    // TokenRolesGuard del backend: exige el token emitido por CU-01 en
+    // Authorization: Bearer <token> (x-user-role ya no es aceptado).
+    if (session?.token) headers.Authorization = `Bearer ${session.token}`
   }
 
   let response
