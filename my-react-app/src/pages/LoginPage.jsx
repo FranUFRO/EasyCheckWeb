@@ -78,6 +78,10 @@ export default function LoginPage({ onLogin }) {
           </table>
           <p>Contraseña de todas las cuentas seed: <code>demo</code>.</p>
         </details>
+
+        <a className="reader-entry" href="#lector">
+          📷 Abrir lector de sala (demo)
+        </a>
       </form>
     </div>
   )

@@ -29,7 +29,10 @@ export class ApiError extends Error {
   }
 }
 
-export async function apiFetch(path, { method = 'GET', body, auth = true } = {}) {
+export async function apiFetch(
+  path,
+  { method = 'GET', body, auth = true, headers: extraHeaders } = {},
+) {
   const headers = { 'Content-Type': 'application/json' }
 
   if (auth) {
@@ -38,6 +41,10 @@ export async function apiFetch(path, { method = 'GET', body, auth = true } = {})
     // Authorization: Bearer <token> (x-user-role ya no es aceptado).
     if (session?.token) headers.Authorization = `Bearer ${session.token}`
   }
+
+  // Cabeceras extra (p. ej. x-reader-key del lector de sala, o un Authorization
+  // distinto al de la sesión). Se aplican al final para poder sobreescribir.
+  Object.assign(headers, extraHeaders)
 
   let response
   try {

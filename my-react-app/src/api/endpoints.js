@@ -27,6 +27,12 @@ export function getStudentAttendance(rut) {
   return apiFetch(`/api/v1/students/${enc(rut)}/attendance`)
 }
 
+// CU-07/CU-08 (apoyo) — clases que dicta el profesor con sus estados, para
+// listarlas con su id en vez de escribirlo a mano. El RUT sale del token.
+export function getProfessorClasses() {
+  return apiFetch('/api/v1/professors/me/classes')
+}
+
 // CU-05 — asistencia de los estudiantes de una asignatura (profesor).
 // El RUT del profesor sale del token (ruta /me).
 export function getSubjectAssistance(subjectCode) {
@@ -66,4 +72,35 @@ export function getStudentSubjectRecords(studentRut, subjectCode) {
   return apiFetch(
     `/api/v1/students/${enc(studentRut)}/assistance?subject=${enc(subjectCode)}`,
   )
+}
+
+// ── CU-06 (lado lector de sala) ──────────────────────────────────────────────
+// El lector es un dispositivo, no un usuario: se autentica con la reader key en
+// la cabecera x-reader-key (no lleva token). Registra la asistencia a partir del
+// qrToken firmado que muestra la app del estudiante.
+export function registerAssistance(qrToken, readerKey) {
+  return apiFetch('/api/v1/assistance/register', {
+    method: 'POST',
+    body: { qrToken },
+    auth: false,
+    headers: { 'x-reader-key': readerKey },
+  })
+}
+
+// Respaldo de la demo: reproduce el lado del estudiante (CU-06) usando un token
+// de estudiante, para generar un qrToken real cuando la cámara no está
+// disponible. `studentToken` es el token mock del backend (mock-token-<rut>-<rol>).
+export function getStudentClassesWith(studentToken) {
+  return apiFetch('/api/v1/students/me/classes', {
+    auth: false,
+    headers: { Authorization: `Bearer ${studentToken}` },
+  })
+}
+
+export function generateStudentQrWith(studentToken, classId) {
+  return apiFetch(`/api/v1/students/me/classes/${enc(classId)}/qr`, {
+    method: 'POST',
+    auth: false,
+    headers: { Authorization: `Bearer ${studentToken}` },
+  })
 }
